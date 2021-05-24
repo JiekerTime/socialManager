@@ -11,7 +11,7 @@
  Target Server Version : 80019
  File Encoding         : 65001
 
- Date: 24/05/2021 15:32:51
+ Date: 24/05/2021 16:45:04
 */
 
 SET NAMES utf8mb4;
@@ -29,11 +29,6 @@ CREATE TABLE `t_admin`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of t_admin
--- ----------------------------
-INSERT INTO `t_admin` VALUES (1, 'admin', '123456');
-
--- ----------------------------
 -- Table structure for t_base
 -- ----------------------------
 DROP TABLE IF EXISTS `t_base`;
@@ -46,11 +41,6 @@ CREATE TABLE `t_base`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of t_base
--- ----------------------------
-INSERT INTO `t_base` VALUES (2, 2, '滑梯', '待维护');
-
--- ----------------------------
 -- Table structure for t_block
 -- ----------------------------
 DROP TABLE IF EXISTS `t_block`;
@@ -59,13 +49,6 @@ CREATE TABLE `t_block`  (
   `block_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '区名，如（文明楼）',
   PRIMARY KEY (`block_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of t_block
--- ----------------------------
-INSERT INTO `t_block` VALUES (1, '文明楼');
-INSERT INTO `t_block` VALUES (2, '月光楼');
-INSERT INTO `t_block` VALUES (4, '明理大楼');
 
 -- ----------------------------
 -- Table structure for t_guest
@@ -79,13 +62,6 @@ CREATE TABLE `t_guest`  (
   `guest_mobile` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   PRIMARY KEY (`guest_id`, `guest_uid`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of t_guest
--- ----------------------------
-INSERT INTO `t_guest` VALUES (2, 3, '1621694401719X', '王三', '13811111111');
-INSERT INTO `t_guest` VALUES (3, 1, '1621694516933X', '李四', '13800000001');
-INSERT INTO `t_guest` VALUES (4, 3, '1621762748050X', '黄三', '13611111111');
 
 -- ----------------------------
 -- Table structure for t_host
@@ -107,14 +83,6 @@ CREATE TABLE `t_host`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of t_host
--- ----------------------------
-INSERT INTO `t_host` VALUES (1, '12010455555X', 1, 1, 1, 1, 1, '王志', '654321', 830, '13111111111');
-INSERT INTO `t_host` VALUES (2, '1201678744X', 1, 1, NULL, 4, NULL, '王莽', '123456', 630, '13000000000');
-INSERT INTO `t_host` VALUES (3, '1621582121579X', 2, 2, NULL, NULL, NULL, '李明', '123456', 730, '13000000001');
-INSERT INTO `t_host` VALUES (5, '1621840212901X', 4, 1, NULL, 6, 13, '俊杰', '123456', 601, '13821735637');
-
--- ----------------------------
 -- Table structure for t_park
 -- ----------------------------
 DROP TABLE IF EXISTS `t_park`;
@@ -123,13 +91,6 @@ CREATE TABLE `t_park`  (
   `block_id` int(0) NOT NULL,
   PRIMARY KEY (`park_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of t_park
--- ----------------------------
-INSERT INTO `t_park` VALUES (1, 1);
-INSERT INTO `t_park` VALUES (4, 2);
-INSERT INTO `t_park` VALUES (13, 4);
 
 -- ----------------------------
 -- Table structure for t_pet
@@ -144,13 +105,6 @@ CREATE TABLE `t_pet`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of t_pet
--- ----------------------------
-INSERT INTO `t_pet` VALUES (1, 1, '雨雨', '狗狗');
-INSERT INTO `t_pet` VALUES (4, 2, '大黄', '猫');
-INSERT INTO `t_pet` VALUES (6, 5, '小福狗', '狗');
-
--- ----------------------------
 -- Table structure for t_political
 -- ----------------------------
 DROP TABLE IF EXISTS `t_political`;
@@ -160,13 +114,6 @@ CREATE TABLE `t_political`  (
   `charge` double NOT NULL COMMENT '费用',
   PRIMARY KEY (`political_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of t_political
--- ----------------------------
-INSERT INTO `t_political` VALUES (1, '党员', 50);
-INSERT INTO `t_political` VALUES (2, '团员', 20);
-INSERT INTO `t_political` VALUES (3, '群众', 0);
 
 -- ----------------------------
 -- Table structure for t_property
@@ -181,12 +128,6 @@ CREATE TABLE `t_property`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of t_property
--- ----------------------------
-INSERT INTO `t_property` VALUES (1, 2, '120107777X', '王松');
-INSERT INTO `t_property` VALUES (2, 1, '1621773514315X', '王鑫');
-
--- ----------------------------
 -- Table structure for t_rent
 -- ----------------------------
 DROP TABLE IF EXISTS `t_rent`;
@@ -197,11 +138,6 @@ CREATE TABLE `t_rent`  (
   `rent_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '租客名称',
   PRIMARY KEY (`rent_id`, `host_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of t_rent
--- ----------------------------
-INSERT INTO `t_rent` VALUES (1, 1, '12010777777X', '张一珊');
 
 -- ----------------------------
 -- Table structure for t_security
@@ -216,12 +152,6 @@ CREATE TABLE `t_security`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of t_security
--- ----------------------------
-INSERT INTO `t_security` VALUES (1, '1201082222X', 1, '李溜');
-INSERT INTO `t_security` VALUES (3, '1621762701434X', 2, '彰武');
-
--- ----------------------------
 -- Table structure for t_store
 -- ----------------------------
 DROP TABLE IF EXISTS `t_store`;
@@ -232,10 +162,5 @@ CREATE TABLE `t_store`  (
   `store_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '底商类型',
   PRIMARY KEY (`store_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of t_store
--- ----------------------------
-INSERT INTO `t_store` VALUES (1, 1, '有家文具店', '文具销售');
 
 SET FOREIGN_KEY_CHECKS = 1;
