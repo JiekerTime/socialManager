@@ -3,10 +3,10 @@
 项目名称为**SocialManager**，实则定位于社区管理，其设计模块包括：业主管理、访客管理、物业管理等。
 # 项目概览
 登录页面：
-![登录页面](/picture/login.jpg)
+![登录页面](pictures/login.jpg)
 欢迎页面：
-![欢迎页面](/picture/welcome.jpg)
+![欢迎页面](pictures/welcome.jpg)
 功能界面：
-![功能界面](/picture/show.jpg)
+![功能界面](pictures/show.jpg)
 # 总结
 该项目比较正规，可以以此为模板进行提升，潜力无限！
