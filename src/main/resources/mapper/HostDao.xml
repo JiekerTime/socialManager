@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jd.socialmanager.dao.IHostDao">
+
+    <resultMap type="com.jd.socialmanager.entity.HostDO" id="hostInfo">
+        <id property="hostId" column="host_id" jdbcType="INTEGER"/>
+        <result property="uid" column="uid" jdbcType="VARCHAR"/>
+        <result property="blockId" column="block_id" jdbcType="INTEGER"/>
+        <result property="politicalId" column="political_id" jdbcType="INTEGER"/>
+        <result property="rentId" column="rent_id" jdbcType="INTEGER"/>
+        <result property="petId" column="pet_id" jdbcType="INTEGER"/>
+        <result property="parkId" column="park_id" jdbcType="INTEGER"/>
+        <result property="hostName" column="host_name" jdbcType="VARCHAR"/>
+        <result property="password" column="password" jdbcType="VARCHAR"/>
+        <result property="roomId" column="room_id" jdbcType="INTEGER"/>
+        <result property="mobile" column="mobile" jdbcType="VARCHAR"/>
+        <association property="block" javaType="com.jd.socialmanager.entity.BlockDO">
+            <id property="blockId" column="block_id" jdbcType="INTEGER"/>
+            <result property="blockName" column="block_name" jdbcType="VARCHAR"/>
+        </association>
+        <association property="pet" javaType="com.jd.socialmanager.entity.PetDO">
+            <id property="petId" column="pet_id" jdbcType="INTEGER"/>
+            <result property="hostId" column="host_id" jdbcType="INTEGER"/>
+            <result property="petName" column="pet_name" jdbcType="VARCHAR"/>
+            <result property="petType" column="pet_type" jdbcType="VARCHAR"/>
+        </association>
+        <association property="rent" javaType="com.jd.socialmanager.entity.RentDO">
+            <id property="rentId" column="rent_id" jdbcType="INTEGER"/>
+            <result property="hostId" column="host_id" jdbcType="INTEGER"/>
+            <result property="rentUid" column="rent_uid" jdbcType="VARCHAR"/>
+            <result property="rentName" column="rent_name" jdbcType="VARCHAR"/>
+        </association>
+        <association property="political" javaType="com.jd.socialmanager.entity.PoliticalDO">
+            <id property="politicalId" column="political_id" jdbcType="INTEGER"/>
+            <result property="politicalType" column="political_type" jdbcType="VARCHAR"/>
+            <result property="charge" column="charge" jdbcType="VARCHAR"/>
+        </association>
+    </resultMap>
+
+    <resultMap type="com.jd.socialmanager.entity.HostDO" id="loginInfo">
+        <result property="hostId" column="host_id" jdbcType="INTEGER"/>
+        <result property="uid" column="uid" jdbcType="VARCHAR"/>
+        <result property="blockId" column="block_id" jdbcType="INTEGER"/>
+        <result property="politicalId" column="political_id" jdbcType="INTEGER"/>
+        <result property="rentId" column="rent_id" jdbcType="INTEGER"/>
+        <result property="petId" column="pet_id" jdbcType="INTEGER"/>
+        <result property="parkId" column="park_id" jdbcType="INTEGER"/>
+        <result property="hostName" column="host_name" jdbcType="VARCHAR"/>
+        <result property="password" column="password" jdbcType="VARCHAR"/>
+        <result property="roomId" column="room_id" jdbcType="INTEGER"/>
+        <result property="mobile" column="mobile" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="findHost" resultMap="loginInfo">
+        select host_id,
+               uid,
+               block_id,
+               political_id,
+               rent_id,
+               pet_id,
+               park_id,
+               host_name,
+               password,
+               room_id,
+               mobile
+        from socialmanager.t_host
+        where uid = #{uid}
+          and password = #{password}
+    </select>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="hostInfo">
+        select host.host_id,
+               host.uid,
+               host.block_id,
+               host.political_id,
+               host.rent_id,
+               host.pet_id,
+               host.park_id,
+               host.host_name,
+               host.password,
+               host.room_id,
+               host.mobile,
+               block.block_id,
+               block.block_name,
+               pet.pet_id,
+               pet.host_id,
+               pet.pet_name,
+               pet.pet_type,
+               rent.rent_id,
+               rent.host_id,
+               rent.host_id,
+               rent.rent_uid,
+               rent.rent_name,
+               political.political_id,
+               political_type,
+               charge
+        from socialmanager.t_host host
+                 left join socialmanager.t_block block on host.block_id = block.block_id
+                 left join socialmanager.t_rent rent on host.host_id = rent.host_id
+                 left join socialmanager.t_pet pet on host.host_id = pet.host_id
+                 left join socialmanager.t_political political on host.political_id = political.political_id
+        where host.host_id = #{hostId}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="hostInfo">
+        select host.host_id,
+        host.uid,
+        host.block_id,
+        host.political_id,
+        host.rent_id,
+        host.pet_id,
+        host.park_id,
+        host.host_name,
+        host.password,
+        host.room_id,
+        host.mobile,
+        block.block_id,
+        block.block_name,
+        pet.pet_id,
+        pet.host_id,
+        pet.pet_name,
+        pet.pet_type,
+        rent.rent_id,
+        rent.host_id,
+        rent.host_id,
+        rent.rent_uid,
+        rent.rent_name,
+        political.political_id,
+        political_type,
+        charge
+        from socialmanager.t_host host left join socialmanager.t_block block on host.block_id = block.block_id left join
+        socialmanager.t_rent rent
+        on host.host_id = rent.host_id
+        left join socialmanager.t_pet pet on host.host_id = pet.host_id left join socialmanager.t_political political on
+        host.political_id =
+        political.political_id
+        <where>
+            <if test="host != null">
+                <if test="host.hostId != null">
+                    and host.host_id = #{host.hostId}
+                </if>
+                <if test="host.uid != null and host.uid != ''">
+                    and host.uid = #{host.uid}
+                </if>
+                <if test="host.blockId != null">
+                    and host.block_id = #{host.blockId}
+                </if>
+                <if test="host.politicalId != null">
+                    and host.political_id = #{host.politicalId}
+                </if>
+                <if test="host.rentId != null">
+                    and host.rent_id = #{host.rentId}
+                </if>
+                <if test="host.petId != null">
+                    and host.pet_id = #{host.petId}
+                </if>
+                <if test="host.parkId != null">
+                    and host.park_id = #{host.parkId}
+                </if>
+                <if test="host.hostName != null and host.hostName != ''">
+                    and host.host_name like concat('%',#{host.hostName} ,'%')
+                </if>
+                <if test="host.password != null and host.password != ''">
+                    and host.password = #{host.password}
+                </if>
+                <if test="host.roomId != null">
+                    and host.room_id = #{host.roomId}
+                </if>
+                <if test="host.mobile != null and host.mobile != ''">
+                    and host.mobile = #{host.mobile}
+                </if>
+            </if>
+        </where>
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="hostId" useGeneratedKeys="true">
+        insert into socialmanager.t_host(uid, block_id, political_id, rent_id, pet_id, park_id, host_name, password, room_id,
+                                         mobile)
+        values (#{uid}, #{blockId}, #{politicalId}, #{rentId}, #{petId}, #{parkId}, #{hostName}, #{password}, #{roomId},
+                #{mobile})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update socialmanager.t_host
+        <set>
+            <if test="blockId != null">
+                block_id = #{blockId},
+            </if>
+            <if test="politicalId != null">
+                political_id = #{politicalId},
+            </if>
+            <if test="rentId != null">
+                <if test="rentId == 0">
+                    rent_id = null,
+                </if>
+                <if test="rentId != 0">
+                    rent_id = #{rentId},
+                </if>
+            </if>
+            <if test="parkId != null">
+                <if test="parkId == 0">
+                    park_id = null,
+                </if>
+                <if test="parkId != 0">
+                    park_id = #{parkId},
+                </if>
+            </if>
+            <if test="petId != null">
+                <if test="petId == 0">
+                    pet_id = null,
+                </if>
+                <if test="petId != 0">
+                    pet_id = #{petId},
+                </if>
+            </if>
+            <if test="hostName != null and hostName != ''">
+                host_name = #{hostName},
+            </if>
+            <if test="password != null and password != ''">
+                t_host.password = #{password},
+            </if>
+            <if test="roomId != null">
+                room_id = #{roomId},
+            </if>
+            <if test="mobile != null and mobile != ''">
+                mobile = #{mobile},
+            </if>
+        </set>
+        where host_id = #{hostId}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete
+        from socialmanager.t_host
+        where host_id = #{hostId}
+    </delete>
+
+</mapper>

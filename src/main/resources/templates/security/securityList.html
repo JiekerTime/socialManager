@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+   <meta charset="UTF-8">
+   <title>安保人员信息列表</title>
+   <link rel="stylesheet" type="text/css" th:href="@{/easyui/themes/default/easyui.css}">
+   <link rel="stylesheet" type="text/css" th:href="@{/easyui/themes/icon.css}">
+   <link rel="stylesheet" type="text/css" th:href="@{/easyui/css/demo.css}">
+   <script type="text/javascript" th:src="@{/easyui/jquery.min.js}"></script>
+   <script type="text/javascript" th:src="@{/easyui/jquery.easyui.min.js}"></script>
+   <script type="text/javascript" th:src="@{/easyui/js/validateExtends.js}"></script>
+   <script type="text/javascript" th:inline="javascript">
+       $(function () {
+           $('#dataList').datagrid({
+               title: '安保人员信息列表',
+               iconCls: 'icon-more',
+               border: true,
+               collapsible: false,
+               fit: true,
+               method: "post",
+               url: [[@{'/security/getSecurityList'}]],
+               idField: 'securityId',
+               singleSelect: false,
+               pagination: true,
+               rownumbers: true,
+               sortName: 'securityId',
+               remoteSort: false,
+               columns:
+                   [
+                       [
+                           {field: 'chk', checkbox: true, width: 50},
+                           {field: 'securityId', title: '安保人员编号', width: 150, sortable: true},
+                           {field: 'uid', title: '安保人员身份证号码', width: 200},
+                           {field: 'securityName', title: '安保人员姓名', width: 200},
+                           {
+                               field: 'blockName', title: '所属公寓名', width: 150,
+                               formatter: function (value, row, index) {
+                                   if (row.block) {
+                                       if (row.block.blockName !== '')
+                                           return row.block.blockName;
+                                       else {
+                                           return 'not found';
+                                       }
+                                   } else {
+                                       return 'not found';
+                                   }
+                               }
+                           }
+                       ]
+                   ],
+               toolbar: "#toolbar",
+               onBeforeLoad: function () {
+                   try {
+                       $("#blockList").combobox("getData")
+                   } catch (err) {
+                       preLoadBlock();
+                   }
+               }
+           });
+
+           // 设置分页控件
+           var p = $('#dataList').datagrid('getPager');
+
+           $(p).pagination({
+               pageSize: 10,//每页显示的记录条数，默认为10
+               pageList: [10, 20, 30, 50, 100],//可以设置每页记录条数的列表
+               beforePageText: '第',//页数文本框前显示的汉字
+               afterPageText: '页    共 {pages} 页',
+               displayMsg: '当前显示 {from} - {to} 条记录   共 {total} 条记录',
+           });
+
+           //设置工具类按钮
+           $("#add").click(function () {
+               $("#addDialog").dialog("open");
+           });
+
+           //修改
+           $("#edit").click(function () {
+               var selectRows = $("#dataList").datagrid("getSelections");
+               if (selectRows.length !== 1) {
+                   $.messager.alert("消息提醒", "请选择一条数据进行操作!", "warning");
+               } else {
+                   $("#editDialog").dialog("open");
+               }
+           });
+
+           // 删除
+           $("#delete").click(function () {
+               var selectRows = $("#dataList").datagrid("getSelections");
+               var selectLength = selectRows.length;
+               if (selectLength === 0) {
+                   $.messager.alert("消息提醒", "请选择数据进行删除!", "warning");
+               } else {
+                   var ids = {};
+                   $.each(selectRows, function (index, row) {
+                       ids["ids[" + index + "]"] = row.securityId;
+                   });
+                   $.messager.confirm("消息提醒", "将删除与该安保人员相关的所有数据，确认继续？", function (r) {
+                       if (r) {
+                           $.ajax({
+                               type: "post",
+                               url: [[@{'/security/deleteSecurity'}]],
+                               data: ids,
+                               success: function (data) {
+                                   if (data.success) {
+                                       $.messager.alert("消息提醒", data.message, "info");
+                                       // 刷新表格
+                                       $('#dataList').datagrid("reload");
+                                       $('#dataList').datagrid("uncheckAll");
+                                   } else {
+                                       $.messager.alert("消息提醒", data.message, "warning");
+                                   }
+                               }
+                           });
+                       }
+                   });
+               }
+           });
+
+           function preLoadBlock() {
+               $("#blockList").combobox({
+                   width: "150",
+                   height: "25",
+                   valueField: "blockId",
+                   textField: "blockName",
+                   multiple: false, //可多选
+                   editable: false, //不可编辑
+                   method: "post",
+                   url: [[@{'/block/getBlockList'(from = combox)}]]
+               });
+           }
+
+           //下拉框通用属性
+           $("#add_blockList, #edit_blockList").combobox({
+               width: "200",
+               height: "30",
+               valueField: "blockId",
+               textField: "blockName",
+               multiple: false,
+               editable: false,
+               method: "post",
+           });
+
+           $("#add_blockList").combobox({
+               url: [[@{'/block/getBlockList'(from = combox)}]],
+               onLoadSuccess: function () {
+                   //默认选择第一条数据
+                   var data = $(this).combobox("getData");
+                   $(this).combobox("setValue", data[0].id);
+               }
+           });
+
+           $("#edit_blockList").combobox({
+               url: [[@{'/block/getBlockList'(from = combox)}]],
+               onLoadSuccess: function () {
+                   //默认选择第一条数据
+                   var data = $(this).combobox("getData");
+                   $(this).combobox("setValue", data[0].id);
+               }
+           });
+
+           $("#addDialog").dialog({
+               title: "添加安保人员信息",
+               width: 650,
+               height: 460,
+               iconCls: "icon-add",
+               modal: true,
+               collapsible: false,
+               minimizable: false,
+               maximizable: false,
+               draggable: true,
+               closed: true,
+               buttons: [
+                   {
+                       text: '添加',
+                       plain: true,
+                       iconCls: 'icon-user_add',
+                       handler: function () {
+                           var validate = $('#addForm').form("validate");
+                           if (!validate) {
+                               $.messager.alert("消息提醒", "请检查你输入的数据!", "warning");
+                           } else {
+                               var formData = new FormData($("#addForm")[0]);
+                               $.ajax({
+                                   type: "post",
+                                   url: [[@{'/security/addSecurity'}]],
+                                   data: formData,
+                                   async: false,
+                                   cache: false,
+                                   contentType: false,
+                                   processData: false,
+                                   success: function (data) {
+                                       if (data.success) {
+                                           $.messager.alert("消息提醒", data.message, "info");
+                                           //关闭窗口
+                                           $("#addDialog").dialog("close");
+
+                                           //刷新表格
+                                           $('#dataList').datagrid("reload");
+                                           $('#dataList').datagrid("uncheckAll");
+
+                                           //清空原表格数据
+                                           $('#add_uid').textbox('setValue', "");
+                                           $('#add_securityName').textbox('setValue', "");
+
+                                           $("#add_blockList").combobox("clear");
+                                           $("#add_blockList").combobox("reload");
+
+                                       } else {
+                                           $.messager.alert("消息提醒", data.message, "warning");
+                                       }
+                                   }
+                               });
+                           }
+                       }
+                   },
+                   {
+                       text: '重置',
+                       plain: true,
+                       iconCls: 'icon-reload',
+                       handler: function () {
+                           $('#add_uid').textbox('setValue', "");
+                           $('#add_securityName').textbox('setValue', "");
+
+                           $("#add_blockList").combobox("clear");
+                           $("#add_blockList").combobox("reload");
+                       }
+                   },
+               ]
+           });
+
+           $("#editDialog").dialog({
+               title: "修改安保人员信息",
+               width: 650,
+               height: 460,
+               iconCls: "icon-edit",
+               modal: true,
+               collapsible: false,
+               minimizable: false,
+               maximizable: false,
+               draggable: true,
+               closed: true,
+               buttons: [
+                   {
+                       text: '提交',
+                       plain: true,
+                       iconCls: 'icon-user_add',
+                       handler: function () {
+                           var validate = $('#editForm').form("validate");
+                           if (!validate) {
+                               $.messager.alert("消息提醒", "请检查你输入的数据!", "warning");
+                           } else {
+                               var formData = new FormData($("#editForm")[0]);
+                               $.ajax({
+                                   type: "post",
+                                   url: [[@{'/security/editSecurity'}]],
+                                   data: formData,
+                                   async: false,
+                                   cache: false,
+                                   contentType: false,
+                                   processData: false,
+                                   success: function (data) {
+                                       if (data.success) {
+                                           $.messager.alert("消息提醒", data.message, "info");
+                                           //关闭窗口
+                                           $("#editDialog").dialog("close");
+
+
+                                           //刷新表格
+                                           $('#dataList').datagrid("reload");
+                                           $('#dataList').datagrid("uncheckAll");
+
+                                           //清空原表格数据
+                                           $("#edit_uid").textbox('setValue', "");
+                                           $("#edit_securityName").textbox('setValue', "");
+
+                                           $("#edit_blockList").combobox("clear");
+                                           $("#edit_blockList").combobox("reload");
+
+                                       } else {
+                                           $.messager.alert("消息提醒", data.message, "warning");
+
+                                       }
+                                   }
+                               });
+                           }
+                       }
+                   },
+                   {
+                       text: '重置',
+                       plain: true,
+                       iconCls: 'icon-reload',
+                       handler: function () {
+                           $("#edit_uid").textbox('setValue', "");
+                           $("#edit_securityName").textbox('setValue', "");
+
+                           $("#edit_blockList").combobox("clear");
+                           $("#edit_blockList").combobox("reload");
+                       }
+                   }
+               ],
+               onBeforeOpen: function () {
+                   var selectRow = $("#dataList").datagrid("getSelected");
+                   $(function () {
+                           $("#editForm").form('load', selectRow);
+                       }
+                   )
+               }
+           });
+
+           //搜索按钮监听事件
+           $("#search-btn").click(function () {
+               var securityName = $('#search_security_name').val();
+               var blockId = $('#blockList').combobox('getValue');
+               if (blockId !== '' || securityName !== '') {
+                   $('#dataList').datagrid('load', {
+                       securityName: securityName,
+                       blockId: blockId === '' ? 0 : blockId
+                   });
+               }
+           });
+       });
+   </script>
+</head>
+<body>
+<!-- 访客列表 -->
+<table id="dataList" cellspacing="0" cellpadding="0">
+
+</table>
+<!-- 工具栏 -->
+<div id="toolbar">
+   <div th:if="${session.usertype == '1'}" style="float: left;">
+      <a id="add" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true">添加</a>
+   </div>
+   <div th:if="${session.usertype == '1'}" style="float: left;" class="datagrid-btn-separator"></div>
+   <div style="float: left;">
+      <a id="edit" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true">修改</a>
+   </div>
+   <div style="float: left;" class="datagrid-btn-separator"></div>
+   <div th:if="${session.usertype == '1'}" style="float: left;">
+      <a id="delete" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-some-delete',plain:true">删除</a>
+   </div>
+   <div style="float: left;" class="datagrid-btn-separator">&nbsp;&nbsp;
+      安保人员名称：<input id="search_security_name" class="easyui-textbox" name="search_securityName"/>
+   </div>
+   <div style="margin-left: 10px;margin-top:4px;">
+      公寓名：<input id="blockList" class="easyui-textbox" name="search_block"/>
+      <a id="search-btn" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-search',plain:true">搜索</a>
+   </div>
+</div>
+
+<!-- 添加访客窗口 -->
+<div id="addDialog" style="padding: 10px">
+   <form id="addForm" method="post" enctype="multipart/form-data">
+      <table cellpadding="8">
+
+         <tr>
+            <td>安保人员名称:</td>
+            <td><input id="add_securityName" style="width: 200px; height: 30px;" class="easyui-textbox" type="text"
+                       name="securityName" data-options="required:true, missingMessage:'请填写安保人员名称'"/></td>
+         </tr>
+         <tr>
+            <td>身份证号码:</td>
+            <td><input id="add_uid" style="width: 200px; height: 30px;" class="easyui-textbox" type="text"
+                       name="uid" data-options="required:true, missingMessage:'请填写安保人员身份证号码'"/></td>
+         </tr>
+         <tr>
+            <td>所属区域:</td>
+            <td><input id="add_blockList" style="width: 200px; height: 30px;" class="easyui-textbox" name="blockId"/>
+            </td>
+         </tr>
+      </table>
+   </form>
+</div>
+
+<!-- 修改访客窗口 -->
+<div id="editDialog" style="padding: 10px">
+   <form id="editForm" method="post" enctype="multipart/form-data">
+      <input type="hidden" name="securityId" id="edit_securityId">
+      <table cellpadding="8">
+         <tr>
+            <td>安保人员名称:</td>
+            <td><input id="edit_securityName" style="width: 200px; height: 30px;" class="easyui-textbox" type="text"
+                       name="securityName" data-options="missingMessage:'请填写安保人员名称'"/></td>
+         </tr>
+         <tr>
+            <td>身份证号码:</td>
+            <td><input id="edit_uid" style="width: 200px; height: 30px;" class="easyui-textbox" type="text"
+                       name="uid" data-options="required:true, missingMessage:'请填写安保人员身份证号码'"/></td>
+         </tr>
+         <tr>
+            <td>所属区域：</td>
+            <td><input id="edit_blockList" style="width: 200px; height: 30px;" class="easyui-textbox" name="blockId"/>
+            </td>
+         </tr>
+      </table>
+   </form>
+</div>
+</body>
+</html>

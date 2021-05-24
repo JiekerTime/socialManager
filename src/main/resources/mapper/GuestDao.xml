@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jd.socialmanager.dao.IGuestDao">
+
+    <resultMap type="com.jd.socialmanager.entity.GuestDO" id="guestInfo">
+        <id property="guestId" column="guest_id" jdbcType="INTEGER"/>
+        <result property="guestUID" column="guest_uid" jdbcType="VARCHAR"/>
+        <result property="hostId" column="host_id" jdbcType="INTEGER"/>
+        <result property="guestName" column="guest_name" jdbcType="VARCHAR"/>
+        <result property="guestMobile" column="guest_mobile" jdbcType="VARCHAR"/>
+        <association property="host" javaType="com.jd.socialmanager.entity.HostDO">
+            <id property="hostId" column="host_id" jdbcType="INTEGER"/>
+            <result property="uid" column="uid" jdbcType="VARCHAR"/>
+            <result property="hostName" column="host_name" jdbcType="VARCHAR"/>
+            <result property="mobile" column="mobile" jdbcType="VARCHAR"/>
+        </association>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="guestInfo">
+        select guest_id,
+               guest_uid,
+               guest.host_id,
+               guest_name,
+               guest_mobile,
+               host.host_id,
+               host.uid,
+               host_name,
+               host.mobile
+        from socialmanager.t_guest guest
+                 left join socialmanager.t_host host on guest.host_id = host.host_id
+        where guest_id = #{guestId}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="guestInfo">
+        select guest_id,
+        guest.guest_uid,
+        guest.host_id,
+        guest_name,
+        guest.guest_mobile,
+        host.host_id,
+        host.uid,
+        host_name,
+        host.mobile
+        from socialmanager.t_guest guest
+        left join socialmanager.t_host host on guest.host_id = host.host_id
+        <where>
+            <if test="guest != null">
+                <if test="guest.guestId != null">
+                    and guest.guest_id = #{guest.guestId}
+                </if>
+                <if test="guest.guestUID != null and guest.guestUID != ''">
+                    and guest.guest_uid = #{guest.guestUID}
+                </if>
+                <if test="guest.hostId != null">
+                    and guest.host_id = #{guest.hostId}
+                </if>
+                <if test="guest.guestName != null and guest.guestName != ''">
+                    and guest_name like concat('%',#{guest.guestName},'%')
+                </if>
+            </if>
+        </where>
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="guestId" useGeneratedKeys="true">
+        insert into socialmanager.t_guest(guest_uid, host_id, guest_name, guest_mobile)
+        values (#{guestUID}, #{hostId}, #{guestName}, #{guestMobile})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update socialmanager.t_guest
+        <set>
+            <if test="hostId != null">
+                host_id = #{hostId},
+            </if>
+            <if test="guestName != null and guestName != ''">
+                guest_name = #{guestName},
+            </if>
+            <if test="guestMobile != null and guestMobile != ''">
+                guest_mobile = #{guestMobile},
+            </if>
+        </set>
+        where guest_id = #{guestId}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete
+        from socialmanager.t_guest
+        where guest_id = #{guestId}
+    </delete>
+
+</mapper>

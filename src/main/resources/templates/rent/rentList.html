@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+   <meta charset="UTF-8">
+   <title>租户信息列表</title>
+   <link rel="stylesheet" type="text/css" th:href="@{/easyui/themes/default/easyui.css}">
+   <link rel="stylesheet" type="text/css" th:href="@{/easyui/themes/icon.css}">
+   <link rel="stylesheet" type="text/css" th:href="@{/easyui/css/demo.css}">
+   <script type="text/javascript" th:src="@{/easyui/jquery.min.js}"></script>
+   <script type="text/javascript" th:src="@{/easyui/jquery.easyui.min.js}"></script>
+   <script type="text/javascript" th:src="@{/easyui/js/validateExtends.js}"></script>
+   <script type="text/javascript" th:inline="javascript">
+       $(function () {
+           $('#dataList').datagrid({
+               title: '租户信息列表',
+               iconCls: 'icon-more',
+               border: true,
+               collapsible: false,
+               fit: true,
+               method: "post",
+               url: [[@{'/rent/getRentList'}]],
+               idField: 'rentId',
+               singleSelect: false,
+               pagination: true,
+               rownumbers: true,
+               sortName: 'rentId',
+               remoteSort: false,
+               columns:
+                   [
+                       [
+                           {field: 'chk', checkbox: true, width: 50},
+                           {field: 'rentId', title: '社区租户编号', width: 80, sortable: true},
+                           {field: 'rentName', title: '租户名称', width: 150},
+                           {field: 'rentUid', title: '租户身份证号', width: 150},
+                           {
+                               field: 'roomId', title: '租户门牌号', width: 150,
+                               formatter: function (value, row, index) {
+                                   if (row.host) {
+                                       if (row.host.roomId)
+                                           return row.host.roomId;
+                                       else {
+                                           return 'not found';
+                                       }
+                                   } else {
+                                       return 'not found';
+                                   }
+                               }
+                           },
+                           {
+                               field: 'hostName', title: '房主姓名', width: 150,
+                               formatter: function (value, row, index) {
+                                   if (row.host) {
+                                       if (row.host.hostName)
+                                           return row.host.hostName;
+                                       else {
+                                           return 'not found';
+                                       }
+                                   } else {
+                                       return 'not found';
+                                   }
+                               }
+                           },
+                           {
+                               field: 'uid', title: '负责人身份证号码', width: 200,
+                               formatter: function (value, row, index) {
+                                   if (row.host) {
+                                       if (row.host.uid)
+                                           return row.host.uid;
+                                       else {
+                                           return 'not found';
+                                       }
+                                   } else {
+                                       return 'not found';
+                                   }
+                               }
+                           },
+                           {
+                               field: 'mobile', title: '负责人手机号码', width: 150,
+                               formatter: function (value, row, index) {
+                                   if (row.host) {
+                                       if (row.host.mobile)
+                                           return row.host.mobile;
+                                       else {
+                                           return 'not found';
+                                       }
+                                   } else {
+                                       return 'not found';
+                                   }
+                               }
+                           },
+                           {
+                               field: 'blockName', title: '所属公寓名', width: 150,
+                               formatter: function (value, row, index) {
+                                   if (row.host) {
+                                       if (row.host.block) {
+                                           if (row.host.block.blockName !== '')
+                                               return row.host.block.blockName;
+                                           else {
+                                               return 'not found';
+                                           }
+                                       } else {
+                                           return 'not found';
+                                       }
+                                   } else {
+                                       return 'not found';
+                                   }
+                               }
+                           }
+                       ]
+                   ],
+               toolbar: "#toolbar",
+               onBeforeLoad: function () {
+                   try {
+                       $("#blockList").combobox("getData")
+                   } catch (err) {
+                       preLoadBlock();
+                   }
+               }
+           });
+
+           // 设置分页控件
+           var p = $('#dataList').datagrid('getPager');
+
+           $(p).pagination({
+               pageSize: 10,//每页显示的记录条数，默认为10
+               pageList: [10, 20, 30, 50, 100],//可以设置每页记录条数的列表
+               beforePageText: '第',//页数文本框前显示的汉字
+               afterPageText: '页    共 {pages} 页',
+               displayMsg: '当前显示 {from} - {to} 条记录   共 {total} 条记录',
+           });
+
+           //设置工具类按钮
+           $("#add").click(function () {
+               $("#addDialog").dialog("open");
+           });
+
+           //修改
+           $("#edit").click(function () {
+               var selectRows = $("#dataList").datagrid("getSelections");
+               if (selectRows.length !== 1) {
+                   $.messager.alert("消息提醒", "请选择一条数据进行操作!", "warning");
+               } else {
+                   $("#editDialog").dialog("open");
+               }
+           });
+
+           // 删除
+           $("#delete").click(function () {
+               var selectRows = $("#dataList").datagrid("getSelections");
+               var selectLength = selectRows.length;
+               if (selectLength === 0) {
+                   $.messager.alert("消息提醒", "请选择数据进行删除!", "warning");
+               } else {
+                   var ids = {};
+                   $.each(selectRows, function (index, row) {
+                       ids["ids[" + index + "]"] = row.rentId;
+                   });
+                   $.messager.confirm("消息提醒", "将删除与该租户相关的所有数据，确认继续？", function (r) {
+                       if (r) {
+                           $.ajax({
+                               type: "post",
+                               url: [[@{'/rent/deleteRent'}]],
+                               data: ids,
+                               success: function (data) {
+                                   if (data.success) {
+                                       $.messager.alert("消息提醒", data.message, "info");
+                                       // 刷新表格
+                                       $('#dataList').datagrid("reload");
+                                       $('#dataList').datagrid("uncheckAll");
+                                   } else {
+                                       $.messager.alert("消息提醒", data.message, "warning");
+                                   }
+                               }
+                           });
+                       }
+                   });
+               }
+           });
+
+           function preLoadBlock() {
+               $("#blockList").combobox({
+                   width: "150",
+                   height: "25",
+                   valueField: "blockId",
+                   textField: "blockName",
+                   multiple: false, //可多选
+                   editable: false, //不可编辑
+                   method: "post",
+                   url: [[@{'/block/getBlockList'(from = combox)}]]
+               });
+           }
+
+           $("#addDialog").dialog({
+               title: "添加租户信息",
+               width: 650,
+               height: 460,
+               iconCls: "icon-add",
+               modal: true,
+               collapsible: false,
+               minimizable: false,
+               maximizable: false,
+               draggable: true,
+               closed: true,
+               buttons: [
+                   {
+                       text: '添加',
+                       plain: true,
+                       iconCls: 'icon-user_add',
+                       handler: function () {
+                           var validate = $('#addForm').form("validate");
+                           if (!validate) {
+                               $.messager.alert("消息提醒", "请检查你输入的数据!", "warning");
+                           } else {
+                               var formData = new FormData($("#addForm")[0]);
+                               $.ajax({
+                                   type: "post",
+                                   url: [[@{'/rent/addRent'}]],
+                                   data: formData,
+                                   async: false,
+                                   cache: false,
+                                   contentType: false,
+                                   processData: false,
+                                   success: function (data) {
+                                       if (data.success) {
+                                           $.messager.alert("消息提醒", data.message, "info");
+                                           //关闭窗口
+                                           $("#addDialog").dialog("close");
+
+                                           //刷新表格
+                                           $('#dataList').datagrid("reload");
+                                           $('#dataList').datagrid("uncheckAll");
+
+                                           //清空原表格数据
+                                           $('#add_rentName').textbox('setValue', "");
+                                           $('#add_rentUid').textbox('setValue', "");
+                                           $('#add_uid').textbox('setValue', "");
+
+                                       } else {
+                                           $.messager.alert("消息提醒", data.message, "warning");
+                                       }
+                                   }
+                               });
+                           }
+                       }
+                   },
+                   {
+                       text: '重置',
+                       plain: true,
+                       iconCls: 'icon-reload',
+                       handler: function () {
+                           $('#add_rentName').textbox('setValue', "");
+                           $('#add_rentUid').textbox('setValue', "");
+                           $('#add_uid').textbox('setValue', "");
+                       }
+                   },
+               ]
+           });
+
+           $("#editDialog").dialog({
+               title: "修改租户信息",
+               width: 650,
+               height: 460,
+               iconCls: "icon-edit",
+               modal: true,
+               collapsible: false,
+               minimizable: false,
+               maximizable: false,
+               draggable: true,
+               closed: true,
+               buttons: [
+                   {
+                       text: '提交',
+                       plain: true,
+                       iconCls: 'icon-user_add',
+                       handler: function () {
+                           var validate = $('#editForm').form("validate");
+                           if (!validate) {
+                               $.messager.alert("消息提醒", "请检查你输入的数据!", "warning");
+                           } else {
+                               var formData = new FormData($("#editForm")[0]);
+                               $.ajax({
+                                   type: "post",
+                                   url: [[@{'/rent/editRent'}]],
+                                   data: formData,
+                                   async: false,
+                                   cache: false,
+                                   contentType: false,
+                                   processData: false,
+                                   success: function (data) {
+                                       if (data.success) {
+                                           $.messager.alert("消息提醒", data.message, "info");
+                                           //关闭窗口
+                                           $("#editDialog").dialog("close");
+
+
+                                           //刷新表格
+                                           $('#dataList').datagrid("reload");
+                                           $('#dataList').datagrid("uncheckAll");
+
+                                           //清空原表格数据
+                                           $("#edit_rentName").textbox('setValue', "");
+                                           $("#edit_rentUid").textbox('setValue', "");
+
+                                       } else {
+                                           $.messager.alert("消息提醒", data.message, "warning");
+
+                                       }
+                                   }
+                               });
+                           }
+                       }
+                   },
+                   {
+                       text: '重置',
+                       plain: true,
+                       iconCls: 'icon-reload',
+                       handler: function () {
+                           $("#edit_rentName").textbox('setValue', "");
+                           $("#edit_rentUid").textbox('setValue', "");
+                       }
+                   }
+               ],
+               onBeforeOpen: function () {
+                   var selectRow = $("#dataList").datagrid("getSelected");
+                   $(function () {
+                           $("#editForm").form('load', selectRow);
+                           $("#edit_uid").textbox('setValue', selectRow.host.uid);
+                       }
+                   )
+               }
+           });
+
+           //搜索按钮监听事件
+           $("#search-btn").click(function () {
+               var rentName = $('#search_rentName').val();
+               var hostName = $('#search_hostName').val();
+               var blockId = $('#blockList').combobox('getValue');
+               if (blockId !== '' || rentName !== '' || hostName !== '') {
+                   $('#dataList').datagrid('load', {
+                       rentName: rentName,
+                       hostName: hostName,
+                       blockId: blockId === '' ? 0 : blockId
+                   });
+               }
+           });
+       })
+       ;
+   </script>
+</head>
+<body>
+<table id="dataList" cellspacing="0" cellpadding="0">
+
+</table>
+<!-- 工具栏 -->
+<div id="toolbar">
+   <div th:if="${session.usertype == '1'}" style="float: left;">
+      <a id="add" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true">添加</a>
+   </div>
+   <div th:if="${session.usertype == '1'}" style="float: left;" class="datagrid-btn-separator"></div>
+   <div style="float: left;">
+      <a id="edit" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true">修改</a>
+   </div>
+   <div style="float: left;" class="datagrid-btn-separator"></div>
+   <div th:if="${session.usertype == '1'}" style="float: left;">
+      <a id="delete" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-some-delete',plain:true">删除</a>
+   </div>
+   <div th:if="${session.usertype == '1'}" style="float: left;" class="datagrid-btn-separator">&nbsp;&nbsp;
+      租户名称：<input id="search_rentName" class="easyui-textbox" name="search_rentName"/>
+   </div>
+   <div th:if="${session.usertype == '1'}" style="float: left;" class="datagrid-btn-separator">&nbsp;&nbsp;
+      负责人名称：<input id="search_hostName" class="easyui-textbox" name="search_hostName"/>
+   </div>
+   <div th:if="${session.usertype == '1'}" style="margin-left: 10px;margin-top:4px;">
+      所属公寓名：<input id="blockList" class="easyui-textbox" name="search_block"/>
+      <a id="search-btn" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-search',plain:true">搜索</a>
+   </div>
+</div>
+
+<div id="addDialog" style="padding: 10px">
+   <form id="addForm" method="post" enctype="multipart/form-data">
+      <table cellpadding="8">
+         <tr>
+            <td>租户姓名:</td>
+            <td><input id="add_rentName" style="width: 200px; height: 30px;" class="easyui-textbox" type="text"
+                       name="rentName" data-options="required:true, missingMessage:'请填写租户姓名'"/></td>
+         </tr>
+         <tr>
+            <td>租户身份证号:</td>
+            <td><input id="add_rentUid" style="width: 200px; height: 30px;" class="easyui-textbox" type="text"
+                       name="rentUid" data-options="required:true, missingMessage:'请填写租户身份证号'"/></td>
+         </tr>
+         <tr>
+            <td>房主身份证号:</td>
+            <td><input id="add_uid" style="width: 200px; height: 30px;" class="easyui-textbox" type="text"
+                       name="uid" data-options="required:true, missingMessage:'请填写房主身份证号'"/></td>
+         </tr>
+      </table>
+   </form>
+</div>
+
+<div id="editDialog" style="padding: 10px">
+   <form id="editForm" method="post" enctype="multipart/form-data">
+      <input type="hidden" name="rentId" id="edit_rentId">
+      <table cellpadding="8">
+         <tr>
+            <td>租户姓名:</td>
+            <td><input id="edit_rentName" style="width: 200px; height: 30px;" class="easyui-textbox" type="text"
+                       name="rentName" data-options="missingMessage:'请填写租户姓名'"/></td>
+         </tr>
+         <tr>
+            <td>租户身份证号:</td>
+            <td><input id="edit_rentUid" style="width: 200px; height: 30px;" class="easyui-textbox" type="text"
+                       name="rentUid" data-options="required:true, missingMessage:'请填写租户身份证号'"/></td>
+         </tr>
+      </table>
+   </form>
+</div>
+</body>
+</html>

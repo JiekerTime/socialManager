@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+   <meta charset="UTF-8">
+   <title>业主列表</title>
+   <link rel="stylesheet" type="text/css" th:href="@{/easyui/themes/default/easyui.css}">
+   <link rel="stylesheet" type="text/css" th:href="@{/easyui/themes/icon.css}">
+   <link rel="stylesheet" type="text/css" th:href="@{/easyui/css/demo.css}">
+   <script type="text/javascript" th:src="@{/easyui/jquery.min.js}"></script>
+   <script type="text/javascript" th:src="@{/easyui/jquery.easyui.min.js}"></script>
+   <script type="text/javascript" th:src="@{/easyui/js/validateExtends.js}"></script>
+   <script type="text/javascript" th:inline="javascript">
+       $(function () {
+           $('#dataList').datagrid({
+               title: '业主列表',
+               iconCls: 'icon-more',
+               border: true,
+               collapsible: false,
+               fit: true,
+               method: "post",
+               url: [[@{'/host/getHostList'}]],
+               idField: 'hostId',
+               singleSelect: false,
+               pagination: true,
+               rownumbers: true,
+               sortName: 'hostId',
+               remoteSort: false,
+               columns:
+                   [
+                       [
+                           {field: 'chk', checkbox: true, width: 50},
+                           {field: 'hostId', title: '业主编号', width: 70, sortable: true},
+                           {field: 'uid', title: '身份证号码', width: 200},
+                           {field: 'hostName', title: '户主姓名', width: 200},
+                           {field: 'roomId', title: '房间号', width: 50},
+                           {
+                               field: 'parkId', title: '停车场编号', width: 80,
+                               formatter: function (value, row, index) {
+                                   if (value) {
+                                       return value;
+                                   } else {
+                                       return '未拥有';
+                                   }
+                               }
+                           },
+                           {field: 'mobile', title: '手机号码', width: 150},
+                           {
+                               field: 'blockName', title: '公寓名', width: 50,
+                               formatter: function (value, row, index) {
+                                   if (row.block) {
+                                       if (row.block.blockName !== '')
+                                           return row.block.blockName;
+                                       else {
+                                           return 'not found';
+                                       }
+                                   } else {
+                                       return 'not found';
+                                   }
+                               }
+                           },
+                           {
+                               field: 'politicalType', title: '政治面貌', width: 100,
+                               formatter: function (value, row, index) {
+                                   if (row.political) {
+                                       if (row.political.politicalType !== '')
+                                           return row.political.politicalType;
+                                       else {
+                                           return '群众';
+                                       }
+                                   } else {
+                                       return '群众';
+                                   }
+                               }
+                           },
+                       ]
+
+                   ],
+               toolbar: "#toolbar",
+               onBeforeLoad: function () {
+                   try {
+                       $("#blockList").combobox("getData")
+                   } catch (err) {
+                       preLoadBlock();
+                   }
+                   try {
+                       $("#politicalList").combobox("getData")
+                   } catch (err) {
+                       preLoadPolitical();
+                   }
+               }
+           });
+           //设置分页控件
+           var p = $('#dataList').datagrid('getPager');
+           $(p).pagination({
+               pageSize: 10,//每页显示的记录条数，默认为10
+               pageList: [10, 20, 30, 50, 100],//可以设置每页记录条数的列表
+               beforePageText: '第',//页数文本框前显示的汉字
+               afterPageText: '页    共 {pages} 页',
+               displayMsg: '当前显示 {from} - {to} 条记录   共 {total} 条记录',
+           });
+
+           //设置工具类按钮
+           $("#add").click(function () {
+               $("#addDialog").dialog("open");
+           });
+
+           //修改
+           $("#edit").click(function () {
+               var selectRows = $("#dataList").datagrid("getSelections");
+               if (selectRows.length !== 1) {
+                   $.messager.alert("消息提醒", "请选择一条数据进行操作!", "warning");
+               } else {
+                   $("#editDialog").dialog("open");
+               }
+           });
+
+           //删除
+           $("#delete").click(function () {
+               var selectRows = $("#dataList").datagrid("getSelections");
+               var selectLength = selectRows.length;
+               if (selectLength === 0) {
+                   $.messager.alert("消息提醒", "请选择数据进行删除!", "warning");
+               } else {
+                   var ids = {};
+                   $.each(selectRows, function (index, row) {
+                       ids["ids[" + index + "]"] = row.hostId;
+                   });
+                   $.messager.confirm("消息提醒", "将删除与该业主相关的所有数据，确认继续？", function (r) {
+                       if (r) {
+                           $.ajax({
+                               type: "post",
+                               url: [[@{'/host/deleteHost'}]],
+                               data: ids,
+                               success: function (data) {
+                                   if (data.success) {
+                                       $.messager.alert("消息提醒", data.message, "info");
+                                       //刷新表格
+                                       $("#dataList").datagrid("reload");
+                                       $("#dataList").datagrid("uncheckAll");
+                                   } else {
+                                       $.messager.alert("消息提醒", data.message, "warning");
+                                   }
+                               }
+                           });
+                       }
+                   });
+               }
+           });
+
+           function preLoadBlock() {
+               $("#blockList").combobox({
+                   width: "150",
+                   height: "25",
+                   valueField: "blockId",
+                   textField: "blockName",
+                   multiple: false, //可多选
+                   editable: false, //不可编辑
+                   method: "post",
+                   url: [[@{'/block/getBlockList'(from = combox)}]]
+               });
+           }
+
+           function preLoadPolitical() {
+               $("#politicalList").combobox({
+                   width: "150",
+                   height: "25",
+                   valueField: "politicalId",
+                   textField: "politicalType",
+                   multiple: false, //可多选
+                   editable: false, //不可编辑
+                   method: "post",
+                   url: [[@{'/political/getPoliticalList'(from = combox)}]]
+               });
+           }
+
+
+           //下拉框通用属性
+           $("#add_blockList, #edit_blockList").combobox({
+               width: "200",
+               height: "30",
+               valueField: "blockId",
+               textField: "blockName",
+               multiple: false,
+               editable: false,
+               method: "post",
+           });
+
+           $("#add_politicalList, #edit_politicalList").combobox({
+               width: "200",
+               height: "30",
+               valueField: "politicalId",
+               textField: "politicalType",
+               multiple: false,
+               editable: false,
+               method: "post",
+           });
+
+
+           $("#add_politicalList").combobox({
+               url: [[@{'/political/getPoliticalList'(from = combox)}]],
+               onLoadSuccess: function () {
+                   //默认选择第一条数据
+                   var data = $(this).combobox("getData");
+                   $(this).combobox("setValue", data[0].id);
+               }
+           });
+
+           $("#add_blockList").combobox({
+               url: [[@{'/block/getBlockList'(from = combox)}]],
+               onLoadSuccess: function () {
+                   //默认选择第一条数据
+                   var data = $(this).combobox("getData");
+                   $(this).combobox("setValue", data[0].id);
+               }
+           });
+
+           $("#edit_politicalList").combobox({
+               url: [[@{'/political/getPoliticalList'(from = combox)}]],
+               onLoadSuccess: function () {
+                   //默认选择第一条数据
+                   var data = $(this).combobox("getData");
+                   $(this).combobox("setValue", data[0].id);
+               }
+           });
+
+           $("#edit_blockList").combobox({
+               url: [[@{'/block/getBlockList'(from = combox)}]],
+               onLoadSuccess: function () {
+                   //默认选择第一条数据
+                   var data = $(this).combobox("getData");
+                   $(this).combobox("setValue", data[0].id);
+               }
+           });
+
+           //设置添加业主窗口
+           $("#addDialog").dialog({
+               title: "添加业主",
+               width: 650,
+               height: 460,
+               iconCls: "icon-add",
+               modal: true,
+               collapsible: false,
+               minimizable: false,
+               maximizable: false,
+               draggable: true,
+               closed: true,
+               buttons: [
+                   {
+                       text: '添加',
+                       plain: true,
+                       iconCls: 'icon-user_add',
+                       handler: function () {
+                           var validate = $("#addForm").form("validate");
+                           if (!validate) {
+                               $.messager.alert("消息提醒", "请检查你输入的数据!", "warning");
+                           } else {
+                               var formData = new FormData($("#addForm")[0]);
+                               $.ajax({
+                                   type: "post",
+                                   url: [[@{'/host/addHost'}]],
+                                   data: formData,
+                                   async: false,
+                                   cache: false,
+                                   contentType: false,
+                                   processData: false,
+                                   success: function (data) {
+                                       if (data.success) {
+                                           $.messager.alert("消息提醒", data.message, "info");
+                                           //关闭窗口
+                                           $("#addDialog").dialog("close");
+                                           //清空原表格数据
+                                           $("#add_uid").textbox('setValue', "");
+                                           $("#add_password").textbox('setValue', "");
+                                           $("#add_hostName").textbox('setValue', "");
+                                           $("#add_roomId").textbox('setValue', "");
+                                           $("#add_parkId").textbox('setValue', "");
+                                           $("#add_mobile").textbox('setValue', "");
+
+                                           //刷新表格
+                                           $("#dataList").datagrid("reload");
+                                           $("#dataList").datagrid("uncheckAll");
+
+                                           $("#add_blockList").combobox("clear");
+                                           $("#add_blockList").combobox("reload");
+                                           $("#add_politicalList").combobox("clear");
+                                           $("#add_politicalList").combobox("reload");
+
+                                       } else {
+                                           $.messager.alert("消息提醒", data.message, "warning");
+                                       }
+                                   }
+                               });
+                           }
+                       }
+                   },
+                   {
+                       text: '重置',
+                       plain: true,
+                       iconCls: 'icon-reload',
+                       handler: function () {
+                           $("#add_uid").textbox('setValue', "");
+                           $("#add_password").textbox('setValue', "");
+                           $("#add_hostName").textbox('setValue', "");
+                           $("#add_roomId").textbox('setValue', "");
+                           $("#add_parkId").textbox('setValue', "");
+                           $("#add_mobile").textbox('setValue', "");
+                           $("#add_blockList").combobox("clear");
+                           $("#add_blockList").combobox("reload");
+                           $("#add_politicalList").combobox("clear");
+                           $("#add_politicalList").combobox("reload");
+                       }
+                   },
+               ]
+           });
+
+           //设置编辑业主窗口
+           $("#editDialog").dialog({
+               title: "修改业主信息",
+               width: 650,
+               height: 460,
+               iconCls: "icon-edit",
+               modal: true,
+               collapsible: false,
+               minimizable: false,
+               maximizable: false,
+               draggable: true,
+               closed: true,
+               buttons: [
+                   {
+                       text: '提交',
+                       plain: true,
+                       iconCls: 'icon-user_add',
+                       handler: function () {
+                           var validate = $("#editForm").form("validate");
+                           if (!validate) {
+                               $.messager.alert("消息提醒", "请检查你输入的数据!", "warning");
+                           } else {
+                               var formData = new FormData($("#editForm")[0]);
+                               $.ajax({
+                                   type: "post",
+                                   url: [[@{'/host/editHost'}]],
+                                   data: formData,
+                                   async: false,
+                                   cache: false,
+                                   contentType: false,
+                                   processData: false,
+                                   success: function (data) {
+                                       if (data.success) {
+                                           $.messager.alert("消息提醒", data.message, "info");
+                                           //关闭窗口
+                                           $("#editDialog").dialog("close");
+
+
+                                           //刷新表格
+                                           $("#dataList").datagrid("reload");
+                                           $("#dataList").datagrid("uncheckAll");
+
+                                           //清空原表格数据
+                                           $("#edit_hostId").textbox('setValue', "");
+                                           $("#edit_hostName").textbox('setValue', "");
+                                           $("#edit_roomId").textbox('setValue', "");
+                                           $("#edit_parkId").textbox('setValue', "");
+                                           $("#edit_mobile").textbox('setValue', "");
+                                           $("#edit_blockList").combobox("clear");
+                                           $("#edit_blockList").combobox("reload");
+                                           $("#edit_politicalList").combobox("clear");
+                                           $("#edit_politicalList").combobox("reload");
+
+                                       } else {
+                                           $.messager.alert("消息提醒", data.message, "warning");
+
+                                       }
+                                   }
+                               });
+                           }
+                       }
+                   },
+                   {
+                       text: '重置',
+                       plain: true,
+                       iconCls: 'icon-reload',
+                       handler: function () {
+                           //清空表单
+                           $("#imgd div").remove();
+                           $("#edit_hostName").textbox('setValue', "");
+                           $("#edit_roomId").textbox('setValue', "");
+                           $("#edit_parkId").textbox('setValue', "");
+                           $("#edit_mobile").textbox('setValue', "");
+                           $("#edit_blockList").combobox("clear");
+                           $("#edit_blockList").combobox("reload");
+                           $("#edit_politicalList").combobox("clear");
+                           $("#edit_politicalList").combobox("reload");
+                       }
+                   }
+               ],
+               onBeforeOpen: function () {
+                   var selectRow = $("#dataList").datagrid("getSelected");
+                   $(function () {
+                           $("#editForm").form('load', selectRow);
+                       }
+                   )
+               }
+           });
+
+           //搜索按钮监听事件
+           $("#search-btn").click(function () {
+               var blockId = $('#blockList').combobox('getValue');
+               var politicalId = $('#politicalList').combobox('getValue');
+               var hostName = $('#search_host_name').val();
+               if (blockId !== '' || politicalId !== '0' || hostName !== '') {
+                   $('#dataList').datagrid('load', {
+                       hostName: hostName,
+                       blockId: blockId === '' ? 0 : blockId,
+                       politicalId: politicalId === '' ? 0 : politicalId
+                   });
+               }
+           });
+       });
+   </script>
+</head>
+<body>
+<!-- 业主列表 -->
+<table id="dataList" cellspacing="0" cellpadding="0">
+
+</table>
+<!-- 工具栏 -->
+<div id="toolbar">
+   <div th:if="${session.usertype == '1'}" style="float: left;">
+      <a id="add" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true">添加</a>
+   </div>
+   <div th:if="${session.usertype == '1'}" style="float: left;" class="datagrid-btn-separator"></div>
+   <div style="float: left;">
+      <a id="edit" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true">修改</a>
+   </div>
+   <div style="float: left;" class="datagrid-btn-separator"></div>
+   <div th:if="${session.usertype == '1'}" style="float: left;">
+      <a id="delete" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-some-delete',plain:true">删除</a>
+   </div>
+   <div th:if="${session.usertype == '1'}" style="float: left;" class="datagrid-btn-separator">&nbsp;&nbsp;
+      姓名：<input id="search_host_name" class="easyui-textbox" name="search_host_name"/>
+   </div>
+   <div th:if="${session.usertype == '1'}" style="float: left;" class="datagrid-btn-separator">&nbsp;&nbsp;
+      政治面貌：<input id="politicalList" class="easyui-textbox" name="search_political"/>
+   </div>
+   <div th:if="${session.usertype == '1'}" style="margin-left: 10px;margin-top:4px;">
+      公寓名：<input id="blockList" class="easyui-textbox" name="search_block"/>
+      <a id="search-btn" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-search',plain:true">搜索</a>
+   </div>
+</div>
+
+<!-- 添加业主窗口 -->
+<div id="addDialog" style="padding: 10px">
+   <form id="addForm" method="post" enctype="multipart/form-data">
+      <table cellpadding="8">
+
+         <tr>
+            <td>业主姓名:</td>
+            <td><input id="add_hostName" style="width: 200px; height: 30px;" class="easyui-textbox" type="text"
+                       name="hostName" data-options="required:true, missingMessage:'请填写姓名'"/></td>
+         </tr>
+
+         <tr>
+            <td>业主身份证号码:</td>
+            <td><input id="add_uid" style="width: 200px; height: 30px;" class="easyui-textbox" type="text"
+                       name="uid" data-options="required:true, missingMessage:'请填写身份证号码'"/></td>
+         </tr>
+
+         <tr>
+            <td>密码:</td>
+            <td>
+               <input id="add_password" class="easyui-textbox" style="width: 200px; height: 30px;" type="password"
+                      name="password" data-options="required:true, missingMessage:'请输入登录密码'"/>
+            </td>
+         </tr>
+         <tr>
+            <td>房间号:</td>
+            <td>
+               <input id="add_roomId" class="easyui-textbox" style="width: 200px; height: 30px;" type="number"
+                      name="roomId" data-options="required:true, missingMessage:'请输入房间号码'"/>
+            </td>
+         </tr>
+         <tr>
+            <td>停车位号:</td>
+            <td><input id="add_parkId" style="width: 200px; height: 30px;" class="easyui-textbox" type="number"
+                       name="parkId" data-options="required:true, missingMessage:'请输入停车位编号'"/></td>
+         </tr>
+         <tr>
+            <td>手机号:</td>
+            <td><input id="add_mobile" style="width: 200px; height: 30px;" class="easyui-textbox" type="number"
+                       name="mobile" validType="mobile"/></td>
+         </tr>
+         <tr>
+            <td>公寓:</td>
+            <td><input id="add_blockList" style="width: 200px; height: 30px;" class="easyui-textbox" name="blockId"/>
+            </td>
+         </tr>
+         <tr>
+            <td>政治面貌:</td>
+            <td><input id="add_politicalList" style="width: 200px; height: 30px;" class="easyui-textbox"
+                       name="politicalId"/>
+            </td>
+         </tr>
+      </table>
+   </form>
+</div>
+
+<!-- 修改业主窗口 -->
+<div id="editDialog" style="padding: 10px">
+   <form id="editForm" method="post" enctype="multipart/form-data">
+      <input type="hidden" name="hostId" id="edit_hostId">
+      <table cellpadding="8">
+         <tr>
+            <td>业主姓名:</td>
+            <td><input id="edit_hostName" style="width: 200px; height: 30px;" class="easyui-textbox" type="text"
+                       name="hostName" data-options="missingMessage:'请修改业主姓名'"/></td>
+         </tr>
+         <tr>
+            <td>业主房间号:</td>
+            <td><input id="edit_roomId" style="width: 200px; height: 30px;" class="easyui-textbox" type="number"
+                       name="roomId" data-options="missingMessage:'请修改业主房间号'"/></td>
+         </tr>
+         <tr>
+            <td>业主停车位:</td>
+            <td><input id="edit_parkId" style="width: 200px; height: 30px;" class="easyui-textbox" type="number"
+                       name="parkId" data-options="missingMessage:'请修改业主停车位'"/></td>
+         </tr>
+         <tr>
+            <td>业主手机号:</td>
+            <td><input id="edit_mobile" style="width: 200px; height: 30px;" class="easyui-textbox" type="number"
+                       name="mobile" validType="mobile"/></td>
+         </tr>
+         <tr>
+            <td>公寓:</td>
+            <td><input id="edit_blockList" style="width: 200px; height: 30px;" class="easyui-textbox"
+                       name="blockId"/>
+            </td>
+         </tr>
+         <tr>
+            <td>政治面貌:</td>
+            <td><input id="edit_politicalList" style="width: 200px; height: 30px;" class="easyui-textbox"
+                       name="politicalId"/>
+            </td>
+         </tr>
+      </table>
+   </form>
+</div>
+</body>
+</html>

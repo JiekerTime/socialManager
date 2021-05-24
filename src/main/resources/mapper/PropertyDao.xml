@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jd.socialmanager.dao.IPropertyDao">
+
+    <resultMap type="com.jd.socialmanager.entity.PropertyDO" id="propertyInfo">
+        <id property="propertyId" column="property_id" jdbcType="INTEGER"/>
+        <result property="blockId" column="block_id" jdbcType="INTEGER"/>
+        <result property="uid" column="uid" jdbcType="VARCHAR"/>
+        <result property="propertyName" column="property_name" jdbcType="VARCHAR"/>
+        <association property="block" javaType="com.jd.socialmanager.entity.BlockDO">
+            <id property="blockId" column="block_id" jdbcType="INTEGER"/>
+            <result property="blockName" column="block_name" jdbcType="VARCHAR"/>
+        </association>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="propertyInfo">
+        select property_id,
+               property.block_id,
+               uid,
+               property_name,
+               block.block_id,
+               block_name
+        from socialmanager.t_property property
+                 left join socialmanager.t_block block on property.block_id = block.block_id
+        where property_id = #{propertyId}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="propertyInfo">
+        select property_id,
+        property.block_id,
+        uid,
+        property_name,
+        block.block_id,
+        block_name
+        from socialmanager.t_property property
+        left join socialmanager.t_block block on property.block_id = block.block_id
+        <where>
+            <if test="property != null">
+                <if test="property.propertyId != null">
+                    and property_id = #{property.propertyId}
+                </if>
+                <if test="property.blockId != null">
+                    and property.block_id = #{property.blockId}
+                </if>
+                <if test="property.uid != null and property.uid != ''">
+                    and uid = #{property.uid}
+                </if>
+                <if test="property.propertyName != null and property.propertyName != ''">
+                    and property_name like concat('%',#{property.propertyName},'%')
+                </if>
+            </if>
+        </where>
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="propertyId" useGeneratedKeys="true">
+        insert into socialmanager.t_property(block_id, uid, property_name)
+        values (#{blockId}, #{uid}, #{propertyName})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update socialmanager.t_property
+        <set>
+            <if test="blockId != null">
+                block_id = #{blockId},
+            </if>
+            <if test="uid != null and uid != ''">
+                uid = #{uid},
+            </if>
+            <if test="propertyName != null and propertyName != ''">
+                property_name = #{propertyName},
+            </if>
+        </set>
+        where property_id = #{propertyId}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete
+        from socialmanager.t_property
+        where property_id = #{propertyId}
+    </delete>
+
+</mapper>

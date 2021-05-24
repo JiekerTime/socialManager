@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport"
+		  content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Document</title>
+</head>
+<body>
+
+<div th:fragment="welcome">
+	<div title="欢迎使用" style="padding:20px;overflow:hidden; color:red; ">
+		<p style="font-size: 50px; line-height: 60px; height: 60px;" th:if="${session.usertype == '1'}" th:text="${session.admin.username} + ' 您好！'"></p>
+		<p style="font-size: 50px; line-height: 60px; height: 60px;" th:if="${session.usertype == '2'}" th:text="${session.host.hostName} + ' 您好！'"></p>
+		<p style="font-size: 25px; line-height: 30px; height: 30px;">欢迎使用社区管理信息系统</p>
+
+		<hr />
+		<h2>系统环境</h2>
+		<p>系统环境：Windows</p>
+		<p>Java版本：JDK 1.8</p>
+		<p>开发人员名单：石坚、万福雨、张俊杰、王艺伟、张洪超、李俣辉</p>
+		<p>系统采用技术： springboot + mybatis + maven</p>
+	</div>
+</div>
+</body>
+</html>

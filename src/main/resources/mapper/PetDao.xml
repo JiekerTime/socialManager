@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jd.socialmanager.dao.IPetDao">
+
+    <resultMap type="com.jd.socialmanager.entity.PetDO" id="petInfo">
+        <id property="petId" column="pet_id" jdbcType="INTEGER"/>
+        <result property="hostId" column="host_id" jdbcType="INTEGER"/>
+        <result property="petName" column="pet_name" jdbcType="VARCHAR"/>
+        <result property="petType" column="pet_type" jdbcType="VARCHAR"/>
+        <association property="host" javaType="com.jd.socialmanager.entity.HostDO">
+            <id property="hostId" column="host_id" jdbcType="INTEGER"/>
+            <result property="uid" column="uid" jdbcType="VARCHAR"/>
+            <result property="petId" column="pet_id" jdbcType="INTEGER"/>
+            <result property="hostName" column="host_name" jdbcType="VARCHAR"/>
+            <result property="mobile" column="mobile" jdbcType="VARCHAR"/>
+        </association>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="petInfo">
+        select pet.pet_id,
+               pet.host_id,
+               pet_name,
+               pet_type,
+               host.host_id,
+               uid,
+               host.pet_id,
+               host_name,
+               mobile
+        from socialmanager.t_pet pet
+                 left join socialmanager.t_host host on pet.pet_id = host.pet_id
+        where pet.pet_id = #{petId}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="petInfo">
+        select
+        pet.pet_id,
+        pet.host_id,
+        pet_name,
+        pet_type,
+        host.host_id,
+        uid,
+        host.pet_id,
+        host_name,
+        mobile
+        from socialmanager.t_pet pet
+        left join socialmanager.t_host host on pet.pet_id = host.pet_id
+        <where>
+            <if test="pet != null">
+                <if test="pet.petId != null">
+                    and pet.pet_id = #{pet.petId}
+                </if>
+                <if test="pet.hostId != null">
+                    and pet.host_id = #{pet.hostId}
+                </if>
+                <if test="pet.petName != null and pet.petName != ''">
+                    and pet_name like concat('%',#{pet.petName},'%')
+                </if>
+                <if test="pet.petType != null and pet.petType != ''">
+                    and pet_type = #{pet.petType}
+                </if>
+            </if>
+        </where>
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="petId" useGeneratedKeys="true">
+        insert into socialmanager.t_pet(host_id, pet_name, pet_type)
+        values (#{hostId}, #{petName}, #{petType})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update socialmanager.t_pet
+        <set>
+            <if test="hostId != null">
+                host_id = #{hostId},
+            </if>
+            <if test="petName != null and petName != ''">
+                pet_name = #{petName},
+            </if>
+            <if test="petType != null and petType != ''">
+                pet_type = #{petType},
+            </if>
+        </set>
+        where pet_id = #{petId}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete
+        from socialmanager.t_pet
+        where pet_id = #{petId}
+    </delete>
+
+</mapper>

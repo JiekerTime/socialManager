@@ -1,0 +1,51 @@
+package com.jd.socialmanager.service;
+
+import com.jd.socialmanager.entity.StoreDO;
+
+import java.util.List;
+
+public interface IStoreService {
+
+    /**
+     * 通过ID查询单条数据
+     *
+     * @param tStore 主键
+     * @return 实例对象
+     */
+    StoreDO queryById(Integer tStore);
+
+    /**
+     * 通过实体作为筛选条件查询
+     *
+     * @param store 实例对象
+     * @param offset 查询起始位置
+     * @param limit  查询条数
+     * @return 对象列表
+     */
+    List<StoreDO> queryAll(StoreDO store, int offset, int limit);
+
+    /**
+     * 新增数据
+     *
+     * @param store 实例对象
+     * @return 实例对象
+     */
+    StoreDO insert(StoreDO store);
+
+    /**
+     * 修改数据
+     *
+     * @param store 实例对象
+     * @return 实例对象
+     */
+    StoreDO update(StoreDO store);
+
+    /**
+     * 通过主键删除数据
+     *
+     * @param tStore 主键
+     * @return 是否成功
+     */
+    boolean deleteById(Integer tStore);
+
+}

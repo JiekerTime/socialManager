@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jd.socialmanager.dao.IRentDao">
+
+    <resultMap type="com.jd.socialmanager.entity.RentDO" id="rentInfo">
+        <id property="rentId" column="rent_id" jdbcType="INTEGER"/>
+        <result property="hostId" column="host_id" jdbcType="INTEGER"/>
+        <result property="rentUid" column="rent_uid" jdbcType="VARCHAR"/>
+        <result property="rentName" column="rent_name" jdbcType="VARCHAR"/>
+        <association property="host" javaType="com.jd.socialmanager.entity.HostDO">
+            <id property="hostId" column="host_id" jdbcType="INTEGER"/>
+            <result property="uid" column="uid" jdbcType="VARCHAR"/>
+            <result property="rentId" column="rent_id" jdbcType="INTEGER"/>
+            <result property="hostName" column="host_name" jdbcType="VARCHAR"/>
+            <result property="blockId" column="block_id" jdbcType="INTEGER"/>
+            <result property="roomId" column="room_id" jdbcType="INTEGER"/>
+            <result property="mobile" column="mobile" jdbcType="VARCHAR"/>
+            <association property="block" javaType="com.jd.socialmanager.entity.BlockDO">
+                <id property="blockId" column="block_id" jdbcType="INTEGER"/>
+                <result property="blockName" column="block_name" jdbcType="VARCHAR"/>
+            </association>
+        </association>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="rentInfo">
+        select rent.rent_id,
+               rent.host_id,
+               rent.rent_uid,
+               rent_name,
+               host.host_id,
+               host.uid,
+               host.rent_id,
+               host.host_name,
+               host.block_id,
+               room_id,
+               mobile,
+               block.block_id,
+               block.block_name
+        from socialmanager.t_rent rent
+                 left join socialmanager.t_host host on rent.rent_id = host.rent_id
+                 left join t_block block on host.block_id = block.block_id
+        where rent.rent_id = #{rentId}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="rentInfo">
+        select rent.rent_id,
+        rent.host_id,
+        rent.rent_uid,
+        rent_name,
+        host.host_id,
+        host.uid,
+        host.rent_id,
+        host.host_name,
+        host.block_id,
+        room_id,
+        mobile,
+        block.block_id,
+        block.block_name
+        from socialmanager.t_rent rent
+        left join socialmanager.t_host host on rent.rent_id = host.rent_id
+        left join t_block block on host.block_id = block.block_id
+        <where>
+            <if test="rent != null">
+                <if test="rent.rentId != null">
+                    and rent.rent_id = #{rent.rentId}
+                </if>
+                <if test="rent.hostId != null">
+                    and rent.host_id = #{rent.hostId}
+                </if>
+                <if test="rent.rentUid != null and rent.rentUid != ''">
+                    and rent.rent_uid = #{rent.rentUid}
+                </if>
+                <if test="rent.rentName != null and rent.rentName != ''">
+                    and rent_name like concat('%',#{rent.rentName},'%')
+                </if>
+            </if>
+        </where>
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="rentId" useGeneratedKeys="true">
+        insert into socialmanager.t_rent(host_id, rent_uid, rent_name)
+        values (#{hostId}, #{rentUid}, #{rentName})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update socialmanager.t_rent
+        <set>
+            <if test="rentUid != null and rentUid != ''">
+                rent_uid = #{rentUid},
+            </if>
+            <if test="rentName != null and rentName != ''">
+                rent_name = #{rentName},
+            </if>
+        </set>
+        where rent_id = #{rentId}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete
+        from socialmanager.t_rent
+        where rent_id = #{rentId}
+    </delete>
+
+</mapper>

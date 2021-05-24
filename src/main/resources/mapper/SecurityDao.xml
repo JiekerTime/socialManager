@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jd.socialmanager.dao.ISecurityDao">
+
+    <resultMap type="com.jd.socialmanager.entity.SecurityDO" id="securityInfo">
+        <id property="securityId" column="security_id" jdbcType="INTEGER"/>
+        <result property="uid" column="uid" jdbcType="VARCHAR"/>
+        <result property="blockId" column="block_id" jdbcType="INTEGER"/>
+        <result property="securityName" column="security_name" jdbcType="VARCHAR"/>
+        <association property="block" javaType="com.jd.socialmanager.entity.BlockDO">
+            <id property="blockId" column="block_id" jdbcType="INTEGER"/>
+            <result property="blockName" column="block_name" jdbcType="VARCHAR"/>
+        </association>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="securityInfo">
+        select security_id,
+               uid,
+               security.block_id,
+               security_name,
+               block.block_id,
+               block.block_name
+        from socialmanager.t_security security
+                 left join socialmanager.t_block block on security.block_id = block.block_id
+        where security.security_id = #{securityId}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="securityInfo">
+        select security_id,
+        uid,
+        security.block_id,
+        security_name,
+        block.block_id,
+        block.block_name
+        from socialmanager.t_security security
+        left join socialmanager.t_block block on security.block_id = block.block_id
+        <where>
+            <if test="security != null">
+                <if test="security.securityId != null">
+                    and security_id = #{security.securityId}
+                </if>
+                <if test="security.uid != null and security.uid != ''">
+                    and uid = #{security.uid}
+                </if>
+                <if test="security.blockId != null">
+                    and security.block_id = #{security.blockId}
+                </if>
+                <if test="security.securityName != null and security.securityName != ''">
+                    and security_name like concat('%',#{security.securityName},'%')
+                </if>
+            </if>
+        </where>
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="securityId" useGeneratedKeys="true">
+        insert into socialmanager.t_security(uid, block_id, security_name)
+        values (#{uid}, #{blockId}, #{securityName})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update socialmanager.t_security
+        <set>
+            <if test="blockId != null">
+                block_id = #{blockId},
+            </if>
+            <if test="securityName != null and securityName != ''">
+                security_name = #{securityName},
+            </if>
+        </set>
+        where security_id = #{securityId}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete
+        from socialmanager.t_security
+        where security_id = #{securityId}
+    </delete>
+
+</mapper>

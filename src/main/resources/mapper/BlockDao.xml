@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jd.socialmanager.dao.IBlockDao">
+
+    <resultMap type="com.jd.socialmanager.entity.BlockDO" id="blockInfo">
+        <id property="blockId" column="block_id" jdbcType="INTEGER"/>
+        <result property="blockName" column="block_name" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="blockInfo">
+        select block_id,
+               block_name
+        from socialmanager.t_block
+        where block_id = #{blockId}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="blockInfo">
+        select
+        block_id, block_name
+        from socialmanager.t_block
+        <where>
+            <if test="block !=null ">
+                <if test="block.blockId != null">
+                    and block_id = #{block.blockId}
+                </if>
+                <if test="block.blockName != null and block.blockName != ''">
+                    and block_name like concat('%',#{block.blockName},'%')
+                </if>
+            </if>
+        </where>
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="blockId" useGeneratedKeys="true">
+        insert into socialmanager.t_block(block_name)
+        values (#{blockName})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update socialmanager.t_block
+        <set>
+            <if test="blockName != null and blockName != ''">
+                block_name = #{blockName},
+            </if>
+        </set>
+        where block_id = #{blockId}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete
+        from socialmanager.t_block
+        where block_id = #{blockId}
+    </delete>
+
+</mapper>

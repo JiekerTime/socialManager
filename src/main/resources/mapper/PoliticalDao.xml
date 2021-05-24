@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jd.socialmanager.dao.IPoliticalDao">
+
+    <resultMap type="com.jd.socialmanager.entity.PoliticalDO" id="politicalInfo">
+        <id property="politicalId" column="political_id" jdbcType="INTEGER"/>
+        <result property="politicalType" column="political_type" jdbcType="VARCHAR"/>
+        <result property="charge" column="charge" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="politicalInfo">
+        select political_id,
+               political_type,
+               charge
+        from socialmanager.t_political
+        where political_id = #{politicalId}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="politicalInfo">
+        select
+        political_id, political_type, charge
+        from socialmanager.t_political
+        <where>
+            <if test="political != null">
+                <if test="political.politicalId != null">
+                    and political_id = #{political.politicalId}
+                </if>
+                <if test="political.politicalType != null and political.politicalType != ''">
+                    and political_type like concat("%",#{political.politicalType},"%")
+                </if>
+                <if test="political.charge != null">
+                    and charge = #{political.charge}
+                </if>
+            </if>
+        </where>
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="politicalId" useGeneratedKeys="true">
+        insert into socialmanager.t_political(political_type, charge)
+        values (#{politicalType}, #{charge})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update socialmanager.t_political
+        <set>
+            <if test="politicalType != null and politicalType != ''">
+                political_type = #{politicalType},
+            </if>
+            <if test="charge != null">
+                charge = #{charge},
+            </if>
+        </set>
+        where political_id = #{politicalId}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete
+        from socialmanager.t_political
+        where political_id = #{politicalId}
+    </delete>
+
+</mapper>

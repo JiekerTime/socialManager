@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+   <meta charset="UTF-8">
+   <title>宠物信息列表</title>
+   <link rel="stylesheet" type="text/css" th:href="@{/easyui/themes/default/easyui.css}">
+   <link rel="stylesheet" type="text/css" th:href="@{/easyui/themes/icon.css}">
+   <link rel="stylesheet" type="text/css" th:href="@{/easyui/css/demo.css}">
+   <script type="text/javascript" th:src="@{/easyui/jquery.min.js}"></script>
+   <script type="text/javascript" th:src="@{/easyui/jquery.easyui.min.js}"></script>
+   <script type="text/javascript" th:src="@{/easyui/js/validateExtends.js}"></script>
+   <script type="text/javascript" th:inline="javascript">
+       $(function () {
+           $('#dataList').datagrid({
+               title: '宠物信息列表',
+               iconCls: 'icon-more',
+               border: true,
+               collapsible: false,
+               fit: true,
+               method: "post",
+               url: [[@{'/pet/getPetList'}]],
+               idField: 'petId',
+               singleSelect: false,
+               pagination: true,
+               rownumbers: true,
+               sortName: 'petId',
+               remoteSort: false,
+               columns:
+                   [
+                       [
+                           {field: 'chk', checkbox: true, width: 50},
+                           {field: 'petId', title: '宠物编号', width: 70, sortable: true},
+                           {field: 'petName', title: '宠物名称', width: 150},
+                           {field: 'petType', title: '宠物类型', width: 150},
+                           {
+                               field: 'hostName', title: '主人姓名', width: 150,
+                               formatter: function (value, row, index) {
+                                   if (row.host) {
+                                       if (row.host.hostName)
+                                           return row.host.hostName;
+                                       else {
+                                           return 'not found';
+                                       }
+                                   } else {
+                                       return 'not found';
+                                   }
+                               }
+                           },
+                           {
+                               field: 'mobile', title: '主人手机号', width: 150,
+                               formatter: function (value, row, index) {
+                                   if (row.host) {
+                                       if (row.host.mobile)
+                                           return row.host.mobile;
+                                       else {
+                                           return 'not found';
+                                       }
+                                   } else {
+                                       return 'not found';
+                                   }
+                               }
+                           }
+                       ]
+                   ],
+               toolbar: "#toolbar"
+           });
+
+           // 设置分页控件
+           var p = $('#dataList').datagrid('getPager');
+
+           $(p).pagination({
+               pageSize: 10,//每页显示的记录条数，默认为10
+               pageList: [10, 20, 30, 50, 100],//可以设置每页记录条数的列表
+               beforePageText: '第',//页数文本框前显示的汉字
+               afterPageText: '页    共 {pages} 页',
+               displayMsg: '当前显示 {from} - {to} 条记录   共 {total} 条记录',
+           });
+
+           //设置工具类按钮
+           $("#add").click(function () {
+               $("#addDialog").dialog("open");
+           });
+
+           $("#edit").click(function () {
+               var selectRows = $("#dataList").datagrid("getSelections");
+               if (selectRows.length !== 1) {
+                   $.messager.alert("消息提醒", "请选择一条数据进行操作!", "warning");
+               } else {
+                   $("#editDialog").dialog("open");
+               }
+           });
+
+           $("#delete").click(function () {
+               var selectRows = $("#dataList").datagrid("getSelections");
+               var selectLength = selectRows.length;
+               if (selectLength === 0) {
+                   $.messager.alert("消息提醒", "请选择数据进行删除!", "warning");
+               } else {
+                   var ids = {};
+                   $.each(selectRows, function (index, row) {
+                       ids["ids[" + index + "]"] = row.petId;
+                   });
+                   $.messager.confirm("消息提醒", "将删除与该宠物相关的所有数据，确认继续？", function (r) {
+                       if (r) {
+                           $.ajax({
+                               type: "post",
+                               url: [[@{'/pet/deletePet'}]],
+                               data: ids,
+                               success: function (data) {
+                                   if (data.success) {
+                                       $.messager.alert("消息提醒", data.message, "info");
+                                       // 刷新表格
+                                       $('#dataList').datagrid("reload");
+                                       $('#dataList').datagrid("uncheckAll");
+                                   } else {
+                                       $.messager.alert("消息提醒", data.message, "warning");
+                                   }
+                               }
+                           });
+                       }
+                   });
+               }
+           });
+
+           $("#addDialog").dialog({
+               title: "添加宠物",
+               width: 650,
+               height: 460,
+               iconCls: "icon-add",
+               modal: true,
+               collapsible: false,
+               minimizable: false,
+               maximizable: false,
+               draggable: true,
+               closed: true,
+               buttons: [
+                   {
+                       text: '添加',
+                       plain: true,
+                       iconCls: 'icon-user_add',
+                       handler: function () {
+                           var validate = $('#addForm').form("validate");
+                           if (!validate) {
+                               $.messager.alert("消息提醒", "请检查你输入的数据!", "warning");
+                           } else {
+                               var formData = new FormData($("#addForm")[0]);
+                               $.ajax({
+                                   type: "post",
+                                   url: [[@{'/pet/addPet'}]],
+                                   data: formData,
+                                   async: false,
+                                   cache: false,
+                                   contentType: false,
+                                   processData: false,
+                                   success: function (data) {
+                                       if (data.success) {
+                                           $.messager.alert("消息提醒", data.message, "info");
+                                           //关闭窗口
+                                           $("#addDialog").dialog("close");
+                                           //清空原表格数据
+                                           $('#add_petName').textbox('setValue', "");
+                                           $('#add_petType').textbox('setValue', "");
+                                           $('#add_uid').textbox('setValue', "");
+
+                                           //刷新表格
+                                           $('#dataList').datagrid("reload");
+                                           $('#dataList').datagrid("uncheckAll");
+
+                                       } else {
+                                           $.messager.alert("消息提醒", data.message, "warning");
+                                       }
+                                   }
+                               });
+                           }
+                       }
+                   },
+                   {
+                       text: '重置',
+                       plain: true,
+                       iconCls: 'icon-reload',
+                       handler: function () {
+                           $('#add_petName').textbox('setValue', "");
+                           $('#add_petType').textbox('setValue', "");
+                           $('#add_uid').textbox('setValue', "");
+                       }
+                   },
+               ]
+           });
+
+           $("#editDialog").dialog({
+               title: "修改宠物信息",
+               width: 650,
+               height: 460,
+               iconCls: "icon-edit",
+               modal: true,
+               collapsible: false,
+               minimizable: false,
+               maximizable: false,
+               draggable: true,
+               closed: true,
+               buttons: [
+                   {
+                       text: '提交',
+                       plain: true,
+                       iconCls: 'icon-user_add',
+                       handler: function () {
+                           var validate = $('#editForm').form("validate");
+                           if (!validate) {
+                               $.messager.alert("消息提醒", "请检查你输入的数据!", "warning");
+                           } else {
+                               var formData = new FormData($("#editForm")[0]);
+                               $.ajax({
+                                   type: "post",
+                                   url: [[@{'/pet/editPet'}]],
+                                   data: formData,
+                                   async: false,
+                                   cache: false,
+                                   contentType: false,
+                                   processData: false,
+                                   success: function (data) {
+                                       if (data.success) {
+                                           $.messager.alert("消息提醒", data.message, "info");
+                                           //关闭窗口
+                                           $("#editDialog").dialog("close");
+
+                                           //刷新表格
+                                           $('#dataList').datagrid("reload");
+                                           $('#dataList').datagrid("uncheckAll");
+
+                                           //清空原表格数据
+                                           $("#edit_petName").textbox('setValue', "");
+                                           $("#edit_petType").textbox('setValue', "");
+                                           $("#edit_uid").textbox('setValue', "");
+
+                                       } else {
+                                           $.messager.alert("消息提醒", data.message, "warning");
+
+                                       }
+                                   }
+                               });
+                           }
+                       }
+                   },
+                   {
+                       text: '重置',
+                       plain: true,
+                       iconCls: 'icon-reload',
+                       handler: function () {
+                           $("#edit_petName").textbox('setValue', "");
+                           $("#edit_petType").textbox('setValue', "");
+                           $("#edit_uid").textbox('setValue', "");
+                       }
+                   }
+               ],
+               onBeforeOpen: function () {
+                   var selectRow = $("#dataList").datagrid("getSelected");
+                   $(function () {
+                           $("#editForm").form('load', selectRow);
+                           $("#edit_uid").textbox('setValue', selectRow.host.uid);
+                       }
+                   )
+               }
+           });
+
+           //搜索按钮监听事件
+           $("#search-btn").click(function () {
+               var petName = $('#search_petName').val();
+               var petType = $('#search_petType').val();
+               var hostName = $('#search_hostName').val();
+               if (petName !== '' || petType !== '' || hostName !== '') {
+                   $('#dataList').datagrid('load', {
+                       petName: petName,
+                       petType: petType,
+                       hostName: hostName
+                   });
+               }
+           });
+       });
+   </script>
+</head>
+<body>
+<table id="dataList" cellspacing="0" cellpadding="0">
+
+</table>
+<!-- 工具栏 -->
+<div id="toolbar">
+   <div th:if="${session.usertype == '1'}" style="float: left;">
+      <a id="add" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true">添加</a>
+   </div>
+   <div th:if="${session.usertype == '1'}" style="float: left;" class="datagrid-btn-separator"></div>
+   <div style="float: left;">
+      <a id="edit" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true">修改</a>
+   </div>
+   <div style="float: left;" class="datagrid-btn-separator"></div>
+   <div th:if="${session.usertype == '1'}" style="float: left;">
+      <a id="delete" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-some-delete',plain:true">删除</a>
+   </div>
+   <div th:if="${session.usertype == '1'}" style="margin-left: 10px;margin-top:4px;" class="datagrid-btn-separator">
+      宠物名称：<input id="search_petName" class="easyui-textbox" name="search_petName"/>
+   </div>
+   <div th:if="${session.usertype == '1'}" style="margin-left: 10px;margin-top:4px;" class="datagrid-btn-separator">
+      宠物主人：<input id="search_hostName" class="easyui-textbox" name="search_hostName"/>
+   </div>
+   <div th:if="${session.usertype == '1'}" style="margin-left: 10px;margin-top:4px;">
+      宠物类型：<input id="search_petType" class="easyui-textbox" name="search_petType"/>
+      <a id="search-btn" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-search',plain:true">搜索</a>
+   </div>
+</div>
+
+<div id="addDialog" style="padding: 10px">
+   <form id="addForm" method="post" enctype="multipart/form-data">
+      <table cellpadding="8">
+         <tr>
+            <td>宠物名称:</td>
+            <td><input id="add_petName" style="width: 200px; height: 30px;" class="easyui-textbox" type="text"
+                       name="petName" data-options="required:true, missingMessage:'请填写宠物名称'"/></td>
+         </tr>
+         <tr>
+            <td>宠物类型:</td>
+            <td><input id="add_petType" style="width: 200px; height: 30px;" class="easyui-textbox" type="text"
+                       name="petType" data-options="required:true, missingMessage:'请填写宠物类型'"/></td>
+         </tr>
+         <tr>
+            <td>主人身份证号码:</td>
+            <td><input id="add_uid" style="width: 200px; height: 30px;" class="easyui-textbox" type="text"
+                       name="uid" data-options="required:true, missingMessage:'请填写主人身份证号码'"/></td>
+         </tr>
+      </table>
+   </form>
+</div>
+
+<div id="editDialog" style="padding: 10px">
+   <form id="editForm" method="post" enctype="multipart/form-data">
+      <input type="hidden" name="petId" id="edit_petId">
+      <table cellpadding="8">
+         <tr>
+            <td>宠物名称:</td>
+            <td><input id="edit_petName" style="width: 200px; height: 30px;" class="easyui-textbox" type="text"
+                       name="petName" data-options="required:true, missingMessage:'请填写宠物名称'"/></td>
+         </tr>
+         <tr>
+            <td>宠物类型:</td>
+            <td><input id="edit_petType" style="width: 200px; height: 30px;" class="easyui-textbox" type="text"
+                       name="petType" data-options="required:true, missingMessage:'请填写宠物类型'"/></td>
+         </tr>
+         <tr>
+            <td>主人身份证号码:</td>
+            <td><input id="edit_uid" style="width: 200px; height: 30px;" class="easyui-textbox" type="text"
+                       name="uid" data-options="required:true, missingMessage:'请填写主人身份证号码'"/></td>
+         </tr>
+      </table>
+   </form>
+</div>
+</body>
+</html>

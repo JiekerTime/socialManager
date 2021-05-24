@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+   <title>社区管理信息系统 管理员后台</title>
+   <link rel="stylesheet" type="text/css" th:href="@{/easyui/css/default.css}"/>
+   <link rel="stylesheet" type="text/css" th:href="@{/easyui/themes/default/easyui.css}"/>
+   <link rel="stylesheet" type="text/css" th:href="@{/easyui/themes/icon.css}"/>
+   <script type="text/javascript" th:src="@{/easyui/jquery.min.js}"></script>
+   <script type="text/javascript" th:src="@{/easyui/jquery.easyui.min.js}"></script>
+   <script type="text/javascript" th:src='@{/easyui/js/outlook2.js}'></script>
+   <script type="text/javascript" th:inline="javascript">
+       /*<![CDATA[*/
+       var usertype = [[${session.usertype}]];
+       if (usertype === "1") {
+           var _menus = {
+               "menus": [
+                   {
+                       "menuid": "2", "icon": "", "menuname": "社区居民信息管理",
+                       "menus": [
+                           {
+                               "menuid": "14",
+                               "menuname": "业主列表",
+                               "icon": "icon-user-student",
+                               "url":/*[[@{/host/hostList}]]*/
+                           },
+                       ]
+                   },
+                   {
+                       "menuid": "3", "icon": "", "menuname": "外来流动人员管理",
+                       "menus": [
+                           {
+                               "menuid": "15",
+                               "menuname": "外来人员列表",
+                               "icon": "icon-user-teacher",
+                               "url":/*[[@{/guest/guestList}]]*/
+                           }
+                       ]
+                   },
+                   {
+                       "menuid": "4", "icon": "", "menuname": "基层党支部管理",
+                       "menus": [
+                           {
+                               "menuid": "16",
+                               "menuname": "居民政治面貌列表",
+                               "icon": "icon-book-open",
+                               "url":/*[[@{/political/politicalList}]]*/
+                           },
+                       ]
+                   },
+                   {
+                       "menuid": "5", "icon": "", "menuname": "社区治安管理",
+                       "menus": [
+                           {
+                               "menuid": "17",
+                               "menuname": "安保人员列表",
+                               "icon": "icon-user-teacher",
+                               "url":/*[[@{/security/securityList}]]*/
+                           },
+                       ]
+                   },
+                   {
+                       "menuid": "6", "icon": "", "menuname": "房屋租赁管理",
+                       "menus": [
+                           {
+                               "menuid": "18",
+                               "menuname": "房屋租赁列表",
+                               "icon": "icon-house",
+                               "url":/*[[@{/rent/rentList}]]*/
+                           },
+                       ]
+                   },
+                   {
+                       "menuid": "7", "icon": "", "menuname": "基础设施管理",
+                       "menus": [
+                           {
+                               "menuid": "19",
+                               "menuname": "基础设施列表",
+                               "icon": "icon-house",
+                               "url":/*[[@{/base/baseList}]]*/
+                           },
+                       ]
+                   },
+                   {
+                       "menuid": "8", "icon": "", "menuname": "社区底商管理",
+                       "menus": [
+                           {
+                               "menuid": "20",
+                               "menuname": "社区底商列表",
+                               "icon": "icon-user-teacher",
+                               "url":/*[[@{/store/storeList}]]*/
+                           },
+                       ]
+                   },
+                   {
+                       "menuid": "9", "icon": "", "menuname": "社区宠物管理",
+                       "menus": [{
+                           "menuid": "21",
+                           "menuname": "社区宠物列表",
+                           "icon": "icon-user-teacher",
+                           "url": /*[[@{/pet/petList}]]*/
+                       }
+                       ]
+                   },
+                   {
+                       "menuid": "10", "icon": "", "menuname": "物业人员管理",
+                       "menus": [
+                           {
+                               "menuid": "22",
+                               "menuname": "物业人员列表",
+                               "icon": "icon-user-teacher",
+                               "url":/*[[@{/property/propertyList}]]*/
+                           },
+                       ]
+                   },
+                   {
+                       "menuid": "11", "icon": "", "menuname": "社区停车位管理",
+                       "menus": [
+                           {
+                               "menuid": "23",
+                               "menuname": "社区停车位列表",
+                               "icon": "icon-house",
+                               "url":/*[[@{/park/parkList}]]*/
+                           },
+                       ]
+                   },
+                   {
+                       "menuid": "12", "icon": "", "menuname": "区域管理",
+                       "menus": [
+                           {
+                               "menuid": "24",
+                               "menuname": "区块列表",
+                               "icon": "icon-book-open",
+                               "url":/*[[@{/block/blockList}]]*/
+                           },
+                       ]
+                   },
+                   {
+                       "menuid": "13", "icon": "", "menuname": "系统管理",
+                       "menus": [
+                           {
+                               "menuid": "25",
+                               "menuname": "修改密码",
+                               "icon": "icon-set",
+                               "url":/*[[@{/system/personalView}]]*/
+                           },
+                       ]
+                   }
+               ]
+           };
+       }
+       if (usertype === "2") {
+           var _menus = {
+               "menus": [
+                   {
+                       "menuid": "2", "icon": "", "menuname": "社区居民信息管理",
+                       "menus": [
+                           {
+                               "menuid": "14",
+                               "menuname": "业主列表",
+                               "icon": "icon-user-student",
+                               "url":/*[[@{/host/hostList}]]*/
+                           },
+                       ]
+                   },
+                   {
+                       "menuid": "3", "icon": "", "menuname": "外来流动人员管理",
+                       "menus": [
+                           {
+                               "menuid": "15",
+                               "menuname": "外来人员列表",
+                               "icon": "icon-user-teacher",
+                               "url":/*[[@{/guest/guestList}]]*/
+                           }
+                       ]
+                   },
+                   {
+                       "menuid": "6", "icon": "", "menuname": "房屋租赁管理",
+                       "menus": [
+                           {
+                               "menuid": "18",
+                               "menuname": "房屋租赁列表",
+                               "icon": "icon-house",
+                               "url":/*[[@{/rent/rentList}]]*/
+                           },
+                       ]
+                   },
+                   {
+                       "menuid": "8", "icon": "", "menuname": "社区底商管理",
+                       "menus": [
+                           {
+                               "menuid": "20",
+                               "menuname": "社区底商列表",
+                               "icon": "icon-user-teacher",
+                               "url":/*[[@{/store/storeList}]]*/
+                           },
+                       ]
+                   },
+                   {
+                       "menuid": "9", "icon": "", "menuname": "社区宠物管理",
+                       "menus": [{
+                           "menuid": "21",
+                           "menuname": "社区宠物列表",
+                           "icon": "icon-user-teacher",
+                           "url": /*[[@{/pet/petList}]]*/
+                       }
+                       ]
+                   },
+                   {
+                       "menuid": "11", "icon": "", "menuname": "社区停车位管理",
+                       "menus": [
+                           {
+                               "menuid": "23",
+                               "menuname": "社区停车位列表",
+                               "icon": "icon-house",
+                               "url":/*[[@{/park/parkList}]]*/
+                           },
+                       ]
+                   },
+                   {
+                       "menuid": "13", "icon": "", "menuname": "系统管理",
+                       "menus": [
+                           {
+                               "menuid": "25",
+                               "menuname": "修改密码",
+                               "icon": "icon-set",
+                               "url":/*[[@{/system/personalView}]]*/
+                           },
+                       ]
+                   }
+               ]
+           };
+       }
+
+
+       /*]]>*/
+   </script>
+
+</head>
+<body class="easyui-layout" style="overflow-y: hidden" scroll="no">
+
+<div region="north" split="true" border="false" style="overflow: hidden; height: 30px;
+        background: url(images/layout-browser-hd-bg.gif) #7f99be repeat-x center 50%;
+        line-height: 20px;color: #fff; font-family: Verdana, 微软雅黑,黑体">
+        <span style="float:right; padding-right:20px;" class="head">
+            <span style="color:red; font-weight:bold;" th:if="${session.usertype == '1'}"
+                  th:text="${session.admin.username}">&nbsp</span>
+            <span style="color:red; font-weight:bold;" th:if="${session.usertype == '2'}"
+                  th:text="${session.host.hostName}">&nbsp</span>
+            您好&nbsp;&nbsp;&nbsp;
+            <a th:href="@{/system/logout}" id="loginOut">安全退出</a>
+        </span>
+   <span style="padding-left:10px; font-size: 16px; ">社区管理信息系统在线服务</span>
+</div>
+<div region="south" split="true" style="height: 30px; background: #D2E0F2; ">
+   <div class="footer">社区管理信息系统在线服务</div>
+</div>
+<div region="west" hide="true" split="true" title="导航菜单" style="width:180px;" id="west">
+   <div id="nav" class="easyui-accordion" fit="true" border="false">
+      <!--  导航内容 -->
+   </div>
+
+</div>
+<div id="mainPanle" region="center" style="background: #eee; overflow-y:hidden">
+   <div id="tabs" class="easyui-tabs" fit="true" border="false" th:include="system/welcome :: welcome">
+   </div>
+</div>
+
+
+</body>
+</html>
